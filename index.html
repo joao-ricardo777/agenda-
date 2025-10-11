@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agenda 2025</title>
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background: #f4f4f4;
+    margin: 0;
+    padding: 10px;
+}
+.container {
+    max-width: 900px;
+    margin: 0 auto;
+    background: #fff;
+    padding: 15px;
+    border-radius: 12px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+h1 {
+    text-align: center;
+    margin-bottom: 15px;
+    font-size: 22px;
+}
+.controls {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+}
+input, select, button {
+    padding: 8px;
+    font-size: 14px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+}
+button {
+    background: #4CAF50;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+}
+button:hover {
+    background: #45a049;
+}
+#calendario {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 3px;
+}
+.celula {
+    background: #f9f9f9;
+    border: 1px solid #ddd;
+    min-height: 80px;
+    padding: 3px;
+    border-radius: 6px;
+    display: flex;
+    flex-direction: column;
+    font-size: 12px;
+}
+.celula h3 {
+    margin: 0;
+    font-size: 14px;
+    color: #333;
+    text-align: right;
+}
+.agendamento {
+    background: #d1e7dd;
+    margin-top: 2px;
+    padding: 2px 4px;
+    border-radius: 4px;
+    font-size: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.agendamento button {
+    background: #dc3545;
+    padding: 1px 4px;
+    font-size: 9px;
+    border-radius: 4px;
+    margin-left: 2px;
+}
+.agendamento button.edit-btn {
+    background: #0d6efd;
+}
+.legend {
+    display: flex;
+    justify-content: center;
+    gap: 5px;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+}
+.legend div {
+    padding: 3px 6px;
+    border-radius: 6px;
+    font-size: 11px;
+}
+.legend .pix { background: #cff4fc; }
+.legend .dinheiro { background: #fff3cd; }
+.legend .cartao { background: #f8d7da; }
+.weekdays {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    margin-bottom: 3px;
+}
+.weekdays div {
+    text-align: center;
+    font-weight: bold;
+    font-size: 12px;
+}
+
+/* RESPONSIVO */
+@media(max-width: 600px) {
+    #calendario {
+        grid-template-columns: repeat(7, 1fr);
+        gap: 2px;
+    }
+    .celula {
+        min-height: 60px;
+        padding: 2px;
+        font-size: 10px;
+    }
+    .celula h3 {
+        font-size: 12px;
+    }
+    input, select, button {
+        font-size: 12px;
+        padding: 6px;
+    }
+    .agendamento {
+        font-size: 9px;
+        padding: 1px 3px;
+    }
+    .agendamento button {
+        font-size: 8px;
+        padding: 1px 2px;
+    }
+}
+</style>
+</head>
+<body>
+<div class="container">
+    <h1>Agenda 2025</h1>
+
+    <div class="controls">
+        <button onclick="mesAnterior()">⬅</button>
+        <span id="nomeMes"></span>
+        <button onclick="proximoMes()">➡</button>
+    </div>
+
+    <div class="legend">
+        <div class="pix">Pix</div>
+        <div class="dinheiro">Dinheiro</div>
+        <div class="cartao">Cartão</div>
+    </div>
+
+    <div class="weekdays">
+        <div>Dom</div><div>Seg</div><div>Ter</div><div>Qua</div>
+        <div>Qui</div><div>Sex</div><div>Sáb</div>
+    </div>
+
+    <div id="calendario"></div>
+
+    <h2>Adicionar Agendamento</h2>
+    <input type="number" id="dia" placeholder="Dia" min="1">
+    <input type="text" id="nome" placeholder="Nome da cliente">
+    <input type="time" id="horario">
+    <input type="number" id="valor" placeholder="Valor (R$)" step="0.01">
+    <select id="pagamento">
+        <option value="pix">Pix</option>
+        <option value="dinheiro">Dinheiro</option>
+        <option value="cartao">Cartão</option>
+    </select>
+    <button onclick="adicionarAgendamento()">Adicionar</button>
+</div>
+
+<script>
+const meses = [
+    "Janeiro","Fevereiro","Março","Abril","Maio","Junho",
+    "Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"
+];
+
+let mesAtual = 0;
+const anoAtual = 2025;
+
+let agenda = JSON.parse(localStorage.getItem('agenda2025')) || {};
+
+function salvarAgenda() {
+    localStorage.setItem('agenda2025', JSON.stringify(agenda));
+}
+
+function gerarCalendario() {
+    const calendario = document.getElementById('calendario');
+    calendario.innerHTML = '';
+    document.getElementById('nomeMes').textContent = meses[mesAtual];
+
+    const data = new Date(anoAtual, mesAtual, 1);
+    const primeiroDiaSemana = data.getDay();
+    const diasNoMes = new Date(anoAtual, mesAtual+1, 0).getDate();
+
+    for (let i=0; i<primeiroDiaSemana; i++){
+        const celulaVazia = document.createElement('div');
+        celulaVazia.className = 'celula';
+        calendario.appendChild(celulaVazia);
+    }
+
+    for(let dia=1; dia<=diasNoMes; dia++){
+        const celula = document.createElement('div');
+        celula.className = 'celula';
+        celula.id = `dia-${dia}`;
+        const titulo = document.createElement('h3');
+        titulo.textContent = dia;
+        celula.appendChild(titulo);
+
+        if(agenda[mesAtual] && agenda[mesAtual][dia]){
+            agenda[mesAtual][dia].forEach((a,index)=>{
+                const agDiv = document.createElement('div');
+                agDiv.className = `agendamento ${a.pagamento}`;
+
+                // Editável
+                agDiv.innerHTML = `
+                    ${a.horario} ${a.nome} R$${a.valor} 
+                    <button class="edit-btn" onclick="editarAgendamento(${dia},${index})">✏️</button>
+                    <button onclick="removerAgendamento(${dia},${index})">X</button>
+                `;
+                celula.appendChild(agDiv);
+            });
+        }
+        calendario.appendChild(celula);
+    }
+}
+
+function adicionarAgendamento() {
+    const dia = parseInt(document.getElementById('dia').value);
+    const nome = document.getElementById('nome').value;
+    const horario = document.getElementById('horario').value;
+    const valor = parseFloat(document.getElementById('valor').value).toFixed(2);
+    const pagamento = document.getElementById('pagamento').value;
+
+    if(!dia || !nome || !horario || !valor || !pagamento){
+        alert("Preencha todos os campos!");
+        return;
+    }
+
+    if(!agenda[mesAtual]) agenda[mesAtual] = {};
+    if(!agenda[mesAtual][dia]) agenda[mesAtual][dia] = [];
+
+    agenda[mesAtual][dia].push({nome, horario, valor, pagamento});
+    salvarAgenda();
+    gerarCalendario();
+    limparCampos();
+}
+
+function editarAgendamento(dia,index){
+    const ag = agenda[mesAtual][dia][index];
+    const novoHorario = prompt("Editar horário:", ag.horario);
+    if(novoHorario !== null && novoHorario.trim() !== ""){
+        ag.horario = novoHorario;
+    }
+    const novoPagamento = prompt("Editar pagamento (pix, dinheiro, cartao):", ag.pagamento);
+    if(novoPagamento !== null && ["pix","dinheiro","cartao"].includes(novoPagamento.toLowerCase())){
+        ag.pagamento = novoPagamento.toLowerCase();
+    } else if(novoPagamento !== null){
+        alert("Pagamento inválido!");
+    }
+    salvarAgenda();
+    gerarCalendario();
+}
+
+function removerAgendamento(dia,index){
+    if(agenda[mesAtual] && agenda[mesAtual][dia]){
+        agenda[mesAtual][dia].splice(index,1);
+        salvarAgenda();
+        gerarCalendario();
+    }
+}
+
+function limparCampos(){
+    document.getElementById('dia').value='';
+    document.getElementById('nome').value='';
+    document.getElementById('horario').value='';
+    document.getElementById('valor').value='';
+    document.getElementById('pagamento').value='pix';
+}
+
+function mesAnterior(){
+    mesAtual=(mesAtual-1+12)%12;
+    gerarCalendario();
+}
+
+function proximoMes(){
+    mesAtual=(mesAtual+1)%12;
+    gerarCalendario();
+}
+
+// Inicial
+gerarCalendario();
+</script>
+</body>
+</html>
