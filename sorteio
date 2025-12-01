@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Amigo Secreto 🎁</title>
+  <style>
+    body {
+      font-family: "Poppins", sans-serif;
+      background: linear-gradient(135deg, #ffafbd, #ffc3a0);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    h1 {
+      color: #fff;
+      text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+    }
+
+    .container {
+      background: #fff;
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      text-align: center;
+      width: 90%;
+      max-width: 400px;
+    }
+
+    button {
+      background: #ff7b54;
+      color: white;
+      border: none;
+      padding: 12px 25px;
+      font-size: 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.3s;
+      margin-top: 15px;
+    }
+
+    button:hover {
+      background: #ff6243;
+    }
+
+    p {
+      font-size: 18px;
+      color: #333;
+      margin-top: 15px;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <h1>Amigo Secreto 🎅</h1>
+  <div class="container">
+    <p id="resultado">Clique no botão para sortear!</p>
+    <button onclick="sortear()">Sortear 🎁</button>
+  </div>
+
+  <script>
+    const nomes = [
+      "Cláudio", "André", "Alice", "Sarah", "Alisson",
+      "Renata", "Rouvane", "Bruno", "Deiliane", "Matheus",
+      "Rosiane", "Natália"
+    ];
+
+    let sorteados = [];
+
+    function embaralhar(lista) {
+      return lista.sort(() => Math.random() - 0.5);
+    }
+
+    function sortear() {
+      if (sorteados.length === 0) {
+        sorteados = embaralhar([...nomes]);
+      }
+
+      if (sorteados.length >= 2) {
+        const amigo1 = sorteados.pop();
+        const amigo2 = sorteados[0]; // não pode tirar a si mesmo
+        document.getElementById("resultado").textContent =
+          `${amigo1} tirou ${amigo2}! 🎉`;
+      } else {
+        document.getElementById("resultado").textContent =
+          "Todos já sortearam! Reinicie a página para começar novamente 🎄";
+      }
+    }
+  </script>
+</body>
+</html>
